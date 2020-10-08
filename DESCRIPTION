@@ -1,7 +1,7 @@
 Package: stat.extend
 Type: Package
 Title: Highest Density Regions and Other Functions of Distributions
-Version: 0.1.1
+Version: 0.1.4
 Authors@R: c(
     person("Ben", "O'Neill", email = "ben.oneill@hotmail.com", role = c("aut", "cph")),
     person("Neal", "Fultz", email = "nfultz@gmail.com", role = c("cre","ctb"))
@@ -20,9 +20,9 @@ Imports: sets
 Suggests: extraDistr, invgamma, VGAM
 RoxygenNote: 7.0.2
 NeedsCompilation: no
-Packaged: 2020-08-05 17:51:07 UTC; nfultz
+Packaged: 2020-10-08 15:22:36 UTC; nfultz
 Author: Ben O'Neill [aut, cph],
   Neal Fultz [cre, ctb]
 Maintainer: Neal Fultz <nfultz@gmail.com>
 Repository: CRAN
-Date/Publication: 2020-08-11 12:30:02 UTC
+Date/Publication: 2020-10-08 16:10:02 UTC

@@ -160,35 +160,6 @@ bimodal <- function(cover.prob, Q, f = NULL, u = NULL, ...,
 
   HDR; }
 
-#' Used to inherit roxygen docs
-#'
-#' @param gradtol Parameter for the nlm optimisation - a positive scalar giving the tolerance at which the scaled gradient is considered close enough to zero to terminate the algorithm (see [\code{nlm} doccumentation](https://stat.ethz.ch/R-manual/R-patched/library/stats/html/nlm.html)).
-#' @param steptol Parameter for the nlm optimisation - a positive scalar providing the minimum allowable relative step length (see [\code{nlm} doccumentation](https://stat.ethz.ch/R-manual/R-patched/library/stats/html/nlm.html)).
-#' @param iterlim Parameter for the nlm optimisation - a positive integer specifying the maximum number of iterations to be performed before the program is terminated (see [\code{nlm} doccumentation](https://stat.ethz.ch/R-manual/R-patched/library/stats/html/nlm.html)).
-#' @keywords internal
-checkIterArgs <- function(gradtol, steptol, iterlim) {
-  if (!is.numeric(gradtol)) { stop('Error: gradtol should be numeric') }
-  if (length(gradtol) != 1) { stop('Error: gradtol should be a single value'); }
-  if (gradtol <= 0)         { stop('Error: gradtol should be positive'); }
-  if (!is.numeric(steptol)) { stop('Error: steptol should be numeric') }
-  if (length(steptol) != 1) { stop('Error: steptol should be a single value'); }
-  if (steptol <= 0)         { stop('Error: steptol should be positive'); }
-  if (!is.numeric(iterlim)) { stop('Error: iterlim should be numeric') }
-  if (length(iterlim) != 1) { stop('Error: iterlim should be a single value'); }
-  if (iterlim <= 0)         { stop('Error: iterlim should be positive'); }
-}
-
-partial <- function(FUN, ...) {
-  args <- list(...);
-  args <- args[names(args) %in% names(formals(FUN))];
-
-  QQ <- function(L) { do.call("FUN", c(list(L), args)); }
-
-  QQ;}
-
-`%||%` <- function(l, r) {if (is.null(l)) r else l}
-
-
 
 discrete.unimodal <- function(cover.prob, Q, F, f = NULL, s = NULL, ...,
                               gradtol = 1e-10, steptol = 1e-10, iterlim = 100) {
@@ -221,53 +192,6 @@ discrete.unimodal <- function(cover.prob, Q, F, f = NULL, s = NULL, ...,
                                    sprintf(100*(1-(1-cover.prob)), fmt = '%#.2f'), '%'))
 
   HDR; }
-
-
-discrete <- function(cover.prob, Q, f, ...) {
-
-    # Capture distribution params
-    Q <- partial(Q, ...);
-    f <- partial(f, ...);  
-    
-    #Compute the HDR
-    alpha <- 0.5*(1-cover.prob);
-    S     <- 0L;
-    PCUT  <- 0L;
-    while (S <= 1-PCUT) {
-      MIN <- Q(alpha/2);
-      MAX <- Q(1- alpha/2);
-      VALS <- seq(from = MIN, to = MAX);
-      PVEC <- f(VALS);
-      S    <- sum(PVEC);
-      if (S < cover.prob)  {
-        PCUT <- 0L; } else {
-          SORT <- sort(PVEC, decreasing = TRUE);
-          NN   <- 0L;
-          PP   <- 0L;
-          while (PP < cover.prob) {
-            NN   <- NN+1;
-            PCUT <- SORT[NN];
-            PP   <- PP+PCUT; } }
-      alpha <- 0.5*alpha; }
-    HDRVALS <- sort((MIN-1) + order(PVEC, decreasing = TRUE)[1:NN],
-                    decreasing = FALSE);
-    if (NN == (max(HDRVALS)-min(HDRVALS)+1)) {
-      HDR <- sets::as.interval(HDRVALS); } else {
-        HDR <- sets::as.set(HDRVALS); }
-    attr(HDR, 'probability') <- PP; 
-  
-  #Add method attribute
-  attr(HDR, 'method') <- paste0('Computed using discrete optimisation with minimum coverage probability = ', sprintf(100*cover.prob, fmt = '%#.2f'), '%');
-  
-  #Add class and attributes
-  class(HDR) <- c('hdr', class(HDR));
-
-  HDR; }
-
-
-
-
-
 
 
 

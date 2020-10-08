@@ -1,5 +1,12 @@
 #' Optimal Confidence Intervals for finite populations
 #' 
+#' These functions compute an optimised confidence interval for statistics based on a sample.  The user may enter either a
+#' data vector \code{x} or the sample size \code{n} and the sample statistic.  By default the confidence interval is computed
+#' for an infinite population.  However, the user may enter a population size \code{N} and may use the logical value \code{unsampled} to specify
+#' when the confidence interval is for the variance only of the unsampled part of the population.  This test accounts for the kurtosis, and
+#' so the user must either specify the data vector or specify an assumed kurtosis \code{kurt}; if no kurtosis value is specified then the test
+#' uses the sample kurtosis from the data.
+#' 
 #' The mean interval is built on a symmetric pivotal quantity so it is symmetric around the sample mean.  
 #' 
 #' The variance interval is built on a non-symmetric pivotal quantity, so it is optimised by taking the shortest possible confidence interval with the specified confidence level (see e.g., Tate and Klett 1959).  
@@ -7,16 +14,15 @@
 #' The proportion interval uses the Wilson score interval (see e.g., Agresti and Coull 1998).
 #' 
 #' @param alpha alpha Numeric (probability) The significance level determining the confidence level for the interval (the confidence level is 1-alpha).
-#' @param x  Numeric (vector) The vector of sample data (in the CONF.prop function this must be binary data)
-#' 
-#' @param sample.mean Numeric (any) The sample mean of the data
-#' @param sample.variance Numeric (non-neg) The sample variance of the data
+#' @param x  Numeric (vector) The vector of sample data. In the CONF.prop function this must be binary data. Ignored if a sample statistic is provided.
 #' 
 #' @param unsampled Logical (positive) Indicator of whether the user wants a confidence interval for the relevant parameter only for the unsampled part of the population (as opposed to the whole population)
 #' @param kurt Numeric (positive) The assumed kurtosis of the underlying distribution (must be at least one)
 #' 
 #' @param n Integer (positive) The sample size
 #' @param N Integer (positive) The population size (must be at least as large as the sample size)
+#'
+#' @return an object of class 'ci' providing the confidence interval and related information.
 #'
 #' @inheritParams checkIterArgs 
 #' @examples 
@@ -29,7 +35,13 @@
 #' CONF.mean(alpha = 0.1, x = DATA, N = 3200, kurt = KURT);
 #' CONF.var(alpha = 0.1, x = DATA, N = 3200, kurt = KURT);
 #' CONF.prop(alpha = 0.1, x = DATA > 15, N = 3200);
+#' 
+#' @name CONF
+NULL
+
+
 #'@rdname CONF
+#' @param sample.mean Numeric (any) The sample mean of the data.
 CONF.mean <- function(alpha, x = NULL, sample.mean = mean(x), 
                       sample.variance = var(x), n = length(x),
                       N = Inf, kurt = 3, unsampled = FALSE,
@@ -55,8 +67,7 @@ CONF.mean <- function(alpha, x = NULL, sample.mean = mean(x),
       stop('Error: specify data or n but not both'); }
   
   #Check data inputs
-  if (!is.null(x)) {
-    if (!is.numeric(x))     { stop('Error: x should be numeric') } }
+  if (!is.numeric(x))     { stop('Error: x should be numeric') }
   if (!is.numeric(sample.mean))    { stop('Error: mean should be numeric') }
   if (length(sample.mean) != 1)    { stop('Error: mean should be a single value'); }
   if (!is.numeric(sample.variance)) { stop('Error: variance should be numeric') }
@@ -120,10 +131,11 @@ CONF.mean <- function(alpha, x = NULL, sample.mean = mean(x),
   
   CONF; }
 
-#'@rdname CONF
-CONF.var <- function(alpha, x = NULL, 
-                     sample.variance = var(x), n = length(x), 
-                     N = Inf, kurt = 3, unsampled = FALSE, 
+#' @rdname CONF
+#' @param sample.variance Numeric (non-neg) The sample variance of the data.
+CONF.var <- function(alpha, x = NULL,
+                     sample.variance = var(x), n = length(x),
+                     N = Inf, kurt = NULL, unsampled = FALSE,
                      gradtol = 1e-10, steptol = 1e-10, iterlim = 100) {
   
   #Check input alpha
@@ -134,16 +146,15 @@ CONF.var <- function(alpha, x = NULL,
   
   #Check congruence of data inputs
   if ((!missing(x) && !missing(sample.variance))) {
-    if (abs(sample.variance - var(x)) < 1e-15) 
+    if (abs(sample.variance - var(x)) < 1e-15)
       warning('specify data or sample variance but not both') else
         stop('Error: specify data or sample variance but not both'); }
   if ((!missing(x) && !missing(n))) {
-    if (n != length(x)) 
+    if (n != length(x))
       stop('Error: specify data or n but not both'); }
   
   #Check data inputs
-  if (!is.null(x)) {
-    if (!is.numeric(x))     { stop('Error: x should be numeric') } }
+  if (!is.numeric(x))     { stop('Error: x should be numeric') }
   if (!is.numeric(sample.variance)) { stop('Error: variance should be numeric') }
   if (length(sample.variance) != 1) { stop('Error: variance should be a single value'); }
   if (sample.variance < 0)          { stop('Error: variance is negative'); }
@@ -154,13 +165,15 @@ CONF.var <- function(alpha, x = NULL,
   
   #Check inputs N, kurt and unsampled
   if (!is.numeric(N))       { stop('Error: N should be numeric') }
-  if (N != Inf) { 
+  if (N != Inf) {
     if (as.integer(N) != N) { stop('Error: N should be an integer') } }
   if (length(N) != 1)       { stop('Error: N should be a single value'); }
   if (N <= n)               { stop('Error: N should be larger than n'); }
-  if (!is.numeric(kurt))    { stop('Error: kurt should be numeric') }
-  if (length(kurt) != 1)    { stop('Error: kurt should be a single value'); }
-  if (kurt < 1)             { stop('Error: kurt is less than one'); }
+  miss.kurt <- missing(kurt);
+  if(!miss.kurt)              {
+    if (!is.numeric(kurt))    { stop('Error: kurt should be numeric') }
+    if (length(kurt) != 1)    { stop('Error: kurt should be a single value'); }
+    if (kurt < 1)             { stop('Error: kurt is less than one'); } }
   if (!is.logical(unsampled)) { stop('Error: unsampled should be TRUE/FALSE') }
   if (length(unsampled) != 1) { stop('Error: unsampled should be a single value'); }
   if ((unsampled) & (N-n < 3)) {
@@ -179,6 +192,12 @@ CONF.var <- function(alpha, x = NULL,
   
   #############
   
+  #Determine the kurtosis value
+  if (miss.kurt) {
+    if (missing(x)) { kurt <- 3; } else {
+      kurt <- n*sum((x-mean(x))^4)/(sum((x-mean(x))^2)^2) } }
+  
+  #Compute the confidence interval (including sample data)
   if (!unsampled) {
     
     #Simplify probability functions (with stipulated parameters)
@@ -188,7 +207,7 @@ CONF.var <- function(alpha, x = NULL,
     f <- function(L) { df(L, df1, df2); }
     
     #Set objective function
-    WW <- function(phi) { 
+    WW <- function(phi) {
       
       #Set parameter functions
       T0 <- alpha/(1+exp(-phi));
@@ -201,7 +220,7 @@ CONF.var <- function(alpha, x = NULL,
       W0 <- 1/L - 1/U;
       
       #Set gradient of objective
-      if (!is.null(f)) { 
+      if (!is.null(f)) {
         attr(W0, 'gradient') <- T1*(1/(f(U)*U^2) - 1/(f(L)*L^2)); }
       
       W0; }
@@ -209,7 +228,7 @@ CONF.var <- function(alpha, x = NULL,
     #Compute the HDR
     #The starting value for the parameter phi is set to zero
     #This is the exact optima in the case of a symmetric distribution
-    OPT <- nlm(WW, p = 0, 
+    OPT <- nlm(WW, p = 0,
                gradtol = gradtol, steptol = steptol, iterlim = iterlim);
     TT <- alpha/(1+exp(-OPT$estimate));
     A <- (n-1)/(N-1);
@@ -219,13 +238,14 @@ CONF.var <- function(alpha, x = NULL,
     CONF <- sample.variance*sets::interval(l = L, r = U, bounds = 'closed');
     
     #Add the description of the method
-    METHOD <- ifelse((OPT$iterations == 1), 
-                     paste0('Computed using nlm optimisation with ', 
+    METHOD <- ifelse((OPT$iterations == 1),
+                     paste0('Computed using nlm optimisation with ',
                             OPT$iterations, ' iteration (code = ', OPT$code, ')'),
-                     paste0('Computed using nlm optimisation with ', 
+                     paste0('Computed using nlm optimisation with ',
                             OPT$iterations, ' iterations (code = ', OPT$code, ')'));
     attr(CONF, 'method') <- METHOD; }
   
+  #Compute the confidence interval (excluding sample data)
   if (unsampled) {
     
     #Simplify probability functions (with stipulated parameters)
@@ -235,7 +255,7 @@ CONF.var <- function(alpha, x = NULL,
     f <- function(L) { df(L, df1, df2); }
     
     #Set objective function
-    WW <- function(phi) { 
+    WW <- function(phi) {
       
       #Set parameter functions
       T0 <- alpha/(1+exp(-phi));
@@ -248,7 +268,7 @@ CONF.var <- function(alpha, x = NULL,
       W0 <- 1/L - 1/U;
       
       #Set gradient of objective
-      if (!is.null(f)) { 
+      if (!is.null(f)) {
         attr(W0, 'gradient') <- T1*(1/(f(U)*U^2) - 1/(f(L)*L^2)); }
       
       W0; }
@@ -256,7 +276,7 @@ CONF.var <- function(alpha, x = NULL,
     #Compute the HDR
     #The starting value for the parameter phi is set to zero
     #This is the exact optima in the case of a symmetric distribution
-    OPT <- nlm(WW, p = 0, 
+    OPT <- nlm(WW, p = 0,
                gradtol = gradtol, steptol = steptol, iterlim = iterlim);
     TT <- alpha/(1+exp(-OPT$estimate));
     L   <- 1/Q(TT + 1 - alpha);
@@ -264,25 +284,32 @@ CONF.var <- function(alpha, x = NULL,
     CONF <- sample.variance*sets::interval(l = L, r = U, bounds = 'closed');
     
     #Add the description of the method
-    METHOD <- ifelse((OPT$iterations == 1), 
-                     paste0('Computed using nlm optimisation with ', 
+    METHOD <- ifelse((OPT$iterations == 1),
+                     paste0('Computed using nlm optimisation with ',
                             OPT$iterations, ' iteration (code = ', OPT$code, ')'),
-                     paste0('Computed using nlm optimisation with ', 
+                     paste0('Computed using nlm optimisation with ',
                             OPT$iterations, ' iterations (code = ', OPT$code, ')'));
     attr(CONF, 'method') <- METHOD; }
   
   #Add the description of the data
-  if (is.null(x)) {
-    DATADESC <- paste0('Interval uses ', n, 
-                       ' data points with sample variance = ', 
+  if (is.null(x))  {
+    DATADESC <- paste0('Interval uses ', n,
+                       ' data points with sample variance = ',
                        sprintf(sample.variance, fmt = '%#.4f'),
-                       ' and assumed kurtosis = ', 
-                       sprintf(kurt, fmt = '%#.4f')) } else {
-                         DATADESC <- paste0('Interval uses ', n, ' data points from data ', 
-                                            deparse(substitute(x)), ' with sample variance = ', 
-                                            sprintf(sample.variance, fmt = '%#.4f'),
-                                            ' and assumed kurtosis = ', 
-                                            sprintf(kurt, fmt = '%#.4f')); }
+                       ' and assumed kurtosis = ',
+                       sprintf(kurt, fmt = '%#.4f')) }
+  if (!is.null(x)) {
+    if (miss.kurt) {
+      DATADESC <- paste0('Interval uses ', n, ' data points from data ',
+                         deparse(substitute(x)), ' with sample variance = ',
+                         sprintf(sample.variance, fmt = '%#.4f'),
+                         ' and sample kurtosis = ',
+                         sprintf(kurt, fmt = '%#.4f')); } else {
+                           DATADESC <- paste0('Interval uses ', n, ' data points from data ',
+                                              deparse(substitute(x)), ' with sample variance = ',
+                                              sprintf(sample.variance, fmt = '%#.4f'),
+                                              ' and assumed kurtosis = ',
+                                              sprintf(kurt, fmt = '%#.4f')); } }
   attr(CONF, 'data') <- DATADESC;
   
   #Add class and attributes

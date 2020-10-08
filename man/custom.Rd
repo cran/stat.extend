@@ -5,8 +5,7 @@
 \alias{HDR.unimodal}
 \alias{HDR.bimodal}
 \alias{HDR.discrete.unimodal}
-\alias{HDR.discrete}
-\title{Custom HDR Functions}
+\title{Highest density region (HDR) for an arbitrary distributions}
 \usage{
 HDR.monotone(
   cover.prob,
@@ -52,18 +51,6 @@ HDR.discrete.unimodal(
   steptol = 1e-10,
   iterlim = 100
 )
-
-HDR.discrete(
-  cover.prob,
-  Q,
-  f = NULL,
-  u = NULL,
-  distribution = UNSPECIFIED_LABEL,
-  ...,
-  gradtol = 1e-10,
-  steptol = 1e-10,
-  iterlim = 100
-)
 }
 \arguments{
 \item{cover.prob}{The probability coverage for the HDR (scalar between zero and one).  The significance level for the HDR i is \code{1-cover.prob}.}
@@ -92,7 +79,7 @@ HDR.discrete(
 An interval object with classes \code{hdr} and \code{interval} containing the highest density region and related information.
 }
 \description{
-Custom HDR Functions
+Highest density region (HDR) for an arbitrary distributions
 }
 \examples{
 
@@ -104,6 +91,7 @@ HDR.bimodal(.95, Q=qbeta, shape1=1/2, shape2=1/2)
 
 HDR.discrete.unimodal(.95, Q=qpois, F=ppois, lambda=1)
 
-HDR.discrete(.95, Q=qpois, f=dpois, lambda=1)
-
+}
+\seealso{
+HDR.discrete
 }
