@@ -1,4 +1,4 @@
-b400edab8a413233e5400886855606c1 *DESCRIPTION
+d0f6bd6b1f2182a3adf67f8fc14476b5 *DESCRIPTION
 ec30bd0e805ced0c37a4c2c825717eee *LICENSE
 5826748e5738d5b013f176b1b99f220d *NAMESPACE
 7085bac2fb5dfb359bc64793dea64f9d *R/HDR.R
@@ -32,5 +32,5 @@ c8b845ebe04cc929448ca5f097985960 *man/reformat.Rd
 7e02cc887b911a8da19e1ce6e98f7dd3 *tests/test-extraDistr.R
 e71007cff2a57c996127694f598c4938 *tests/test-invgamma.R
 7d29104db94a5947ae82c07409f1e595 *tests/test-lsubfactorial.R
-edad2c1eeb086ca9fdad9952acb65b96 *tests/test-matching.R
+ce1750607b1ee69f52f2907745292ede *tests/test-matching.R
 999d113ca190b9ab32a4af2bd17cb8a5 *tests/test-vgam.R
